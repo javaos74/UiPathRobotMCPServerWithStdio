@@ -21,20 +21,24 @@ public class UiPathRobotTool
         {
             return "No processes found.";
         }
-        return string.Join("\n---\n", processes.Select( p =>
+        else
         {
-            return $"""
+            return string.Join("\n---\n", processes.Select(p =>
+            {
+                return $"""
                     Process Name: {p.Name}
                     Process Description: {p.Description}
                     Process Key: {p.Key}
                     """;
-        }));
+            }));
+        }
+
     }
 
-    [McpServerTool, Description("Get specific process input parameter for invocation")] 
+    [McpServerTool, Description("Get specific process input argument for invocation")] 
     public static string GetProcessInputParameter(
         RobotClient client,
-        [Description("Process Key to get process input parameter")] string processKey)   
+        [Description("Process Key to get process input argument")] string processKey)   
     {
 #if DEBUG
         //Debugger.Launch();
@@ -53,7 +57,7 @@ public class UiPathRobotTool
     }
 
 
-    [McpServerTool, Description("Invoke process with given paramters")]
+    [McpServerTool, Description("Invoke process with given arguments")]
     public static async Task<string> InvokeProcess(
         RobotClient client,
         [Description("Process Key to invoke")] string processKey,
@@ -87,7 +91,6 @@ public class UiPathRobotTool
                         break;
                 }
             }
-            //job.InputArguments = inputArguments;
             var result = await client.RunJob(job);
             return JsonSerializer.Serialize(result.Arguments);
         }
