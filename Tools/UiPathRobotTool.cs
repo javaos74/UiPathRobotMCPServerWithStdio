@@ -5,6 +5,7 @@ using UiPath.Robot.Api;
 using PTST.UiPath.Orchestrator.API;
 using PTST.UiPath.Orchestrator.Models;
 using System.Diagnostics;
+using System.Text.Json;
 namespace UiPath.Robot.MCP.Tools;
 
 [McpServerToolType]
@@ -36,7 +37,7 @@ public class UiPathRobotTool
         [Description("Process Key to get process input parameter")] string processKey)   
     {
 #if DEBUG
-        Debugger.Launch();
+        //Debugger.Launch();
 #endif
         var helper = RobotHelper.getRobotHelper();
         var release = helper.findProcessWithKey(processKey);
@@ -51,13 +52,16 @@ public class UiPathRobotTool
         }   
     }
 
-/*
-    [McpServerTool, Description("Invoke process with given paramters ")]
+
+    [McpServerTool, Description("Invoke process with given paramters")]
     public static async Task<string> InvokeProcess(
         RobotClient client,
         [Description("Process Key to invoke")] string processKey,
-        [Description("Input Arguments")] string inputArguments)
+        [Description("Input Arguments")] Dictionary<string, object> inputArguments)
     {
+#if DEBUG
+        //Debugger.Launch();
+#endif
         var process = client.GetProcesses().Result.Where( p => p.Key.ToString() == processKey).FirstOrDefault();
         if( process == null)
         {
@@ -66,11 +70,28 @@ public class UiPathRobotTool
         else
         {
             var job = process.ToJob();
-            job.InputArguments = inputArguments;
+            foreach(var k in inputArguments.Keys)
+            { 
+                var v = (System.Text.Json.JsonElement)inputArguments[k];
+                switch( v.ValueKind)
+                {
+                    case System.Text.Json.JsonValueKind.String:
+                        job.InputArguments[k] = v.GetString();
+                        break;
+                    case System.Text.Json.JsonValueKind.Number:
+                        job.InputArguments[k] = v.GetInt64();
+                        break;
+                    case System.Text.Json.JsonValueKind.True:
+                    case System.Text.Json.JsonValueKind.False:
+                        job.InputArguments[k] = v.GetBoolean() ;
+                        break;
+                }
+            }
+            //job.InputArguments = inputArguments;
             var result = await client.RunJob(job);
-            return result.ToString();
+            return JsonSerializer.Serialize(result.Arguments);
         }
     }
-    */
+   
 
 }

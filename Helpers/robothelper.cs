@@ -4,6 +4,8 @@ using dotenv.net;
 using dotenv.net.Utilities;
 using Newtonsoft.Json.Linq;
 using System.Text.Json.Nodes;
+using System.Collections.Generic;
+using System.Text.Json;
 
 public class RobotHelper
 {
@@ -57,7 +59,7 @@ public class RobotHelper
         JArray jarr = JArray.Parse(inputArguments);
         foreach( var jobj in jarr)
         {
-            properties.Add(jobj["name"]?.ToString(),  new JObject( "type", _GetTypeName(jobj["type"]?.ToString())));
+            properties.Add(jobj["name"]?.ToString(),  new Dictionary<string, string>() { { "type", _GetTypeName(jobj["type"]?.ToString()) } });
             if (jobj["required"]?.ToString() == "true")
             {
                 required.Add(jobj["name"]?.ToString());
@@ -65,7 +67,7 @@ public class RobotHelper
         }
         result.Add("properties", properties);
         result.Add("required", required);
-        return result.ToString();
+        return JsonSerializer.Serialize(result);
     }
 
     public string _GetTypeName(string val) {
