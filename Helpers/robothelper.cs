@@ -78,7 +78,9 @@ public class RobotHelper
                 _type = "string";
                 break;
             case "System.Int64":
+            case "System.UInt64":
             case "System.Int32":
+            case "System.UInt32":
             case "System.Single":
             case "System.Double":
                 _type = "number";
