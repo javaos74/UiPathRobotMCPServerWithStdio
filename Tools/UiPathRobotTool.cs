@@ -19,7 +19,7 @@ public class UiPathRobotTool
         var processes = await client.GetProcesses();
         if( processes == null || processes.Count == 0)
         {
-            return "No processes found in specified folders.";
+            return "No processes found.";
         }
         else
         {
@@ -47,7 +47,7 @@ public class UiPathRobotTool
         var release = helper.findProcessWithKey(processKey);
         if( release == null)
         {
-            return "No process found in specified folders.";
+            return "No processes found in specified folder.";
         }
         else        
         {
@@ -69,7 +69,7 @@ public class UiPathRobotTool
         var process = client.GetProcesses().Result.Where( p => p.Key.ToString() == processKey).FirstOrDefault();
         if( process == null)
         {
-            return "No process found in specified folders.";
+            return "No processes found in specified folder.";
         }
         else
         {
