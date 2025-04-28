@@ -11,7 +11,7 @@ public class RobotHelper
 {
     static public RobotHelper _instance;
     private Orchestrator _orch;
-    private Folder? _folder;   
+    private IEnumerable<Folder>? _folders;   
     public RobotHelper() 
     {
         DotEnv.Load();
@@ -20,20 +20,34 @@ public class RobotHelper
             EnvReader.GetStringValue("UIPATH_APPID"),
             EnvReader.GetStringValue("UIPATH_APPSECRET"),
             EnvReader.GetStringValue("UIPATH_APPSCOPE"));
-        _folder = _orch.GetAll<Folder>().Result.Where(f => f.DisplayName == "Agentic Demo").FirstOrDefault();
-        //Console.WriteLine($"Folder Name: {_folder.DisplayName}, Id: {_folder.Id}");
+        var _names = EnvReader.GetStringValue("UIPATH_FOLDERS").Split(';'); // default Shared folder 
+        if (_names != null && _names.Length > 0)
+        {
+            _folders = _orch.GetAll<Folder>().Result.Where(f => _names.Contains(f.DisplayName));
+        }
+        else
+        {
+            _folders = _orch.GetAll<Folder>().Result.Where(f => f.DisplayName == "Shared");
+        }
     }
 
     public Release? findProcessWithKey(string processKey)
     {
-        if( _folder == null)
+        if( _folders == null)
         {
             return null;
         } 
         else
         {
-            var release = _orch.GetAll<Release>(_folder.Id ).Result.Where(r => r.Key.ToString() == processKey).FirstOrDefault();
-            //Console.WriteLine($"Release Name: {release.Name}, Id: {release.Id}");
+            Release release = null;
+            foreach (var _folder in _folders)
+            {
+                release = _orch.GetAll<Release>(_folder.Id).Result.Where(r => r.Key.ToString() == processKey).FirstOrDefault();
+                if (release != null)
+                {
+                    break;
+                }
+            }
             return release;
         }   
     }
