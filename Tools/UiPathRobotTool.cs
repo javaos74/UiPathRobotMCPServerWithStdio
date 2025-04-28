@@ -4,6 +4,7 @@ using System.ComponentModel;
 using UiPath.Robot.Api;
 using PTST.UiPath.Orchestrator.API;
 using PTST.UiPath.Orchestrator.Models;
+using System.Diagnostics;
 namespace UiPath.Robot.MCP.Tools;
 
 [McpServerToolType]
@@ -29,11 +30,14 @@ public class UiPathRobotTool
         }));
     }
 
-    [McpServerTool, Description("Get Process Detail for invocation with process key")] 
-    public static async Task<string> GetProcessDetail(
+    [McpServerTool, Description("Get specific process input parameter for invocation")] 
+    public static string GetProcessInputParameter(
         RobotClient client,
-        [Description("Process Key to get process detail")] string processKey)   
+        [Description("Process Key to get process input parameter")] string processKey)   
     {
+#if DEBUG
+        Debugger.Launch();
+#endif
         var helper = RobotHelper.getRobotHelper();
         var release = helper.findProcessWithKey(processKey);
         if( release == null)
@@ -42,12 +46,31 @@ public class UiPathRobotTool
         }
         else        
         {
-            return $"""
-                    Process Name: {release.Name}
-                    Process Description: {release.Description}
-                    Process Key: {release.Key}
-                    Process Input Arguments: {release.Arguments.Input}
-                    """;
+            var inputArguments = release.Arguments.Input;
+            return helper.ConvertToParameter(inputArguments);
         }   
     }
+
+/*
+    [McpServerTool, Description("Invoke process with given paramters ")]
+    public static async Task<string> InvokeProcess(
+        RobotClient client,
+        [Description("Process Key to invoke")] string processKey,
+        [Description("Input Arguments")] string inputArguments)
+    {
+        var process = client.GetProcesses().Result.Where( p => p.Key.ToString() == processKey).FirstOrDefault();
+        if( process == null)
+        {
+            return "No process found.";
+        }
+        else
+        {
+            var job = process.ToJob();
+            job.InputArguments = inputArguments;
+            var result = await client.RunJob(job);
+            return result.ToString();
+        }
+    }
+    */
+
 }
