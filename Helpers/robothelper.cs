@@ -1,12 +1,8 @@
 using PTST.UiPath.Orchestrator.API;
 using PTST.UiPath.Orchestrator.Models;
-using dotenv.net;
-using dotenv.net.Utilities;
 using Newtonsoft.Json.Linq;
-using System.Text.Json.Nodes;
-using System.Collections.Generic;
-using System.Text.Json;
 using DotNetEnv;
+using Newtonsoft.Json;
 
 public class RobotHelper
 {
@@ -41,7 +37,7 @@ public class RobotHelper
         } 
         else
         {
-            Release release = null;
+            Release? release = null;
             foreach (var _folder in _folders)
             {
                 release = _orch.GetAll<Release>(_folder.Id).Result.Where(r => r.Key.ToString() == processKey).FirstOrDefault();
@@ -75,15 +71,15 @@ public class RobotHelper
         JArray jarr = JArray.Parse(inputArguments);
         foreach( var jobj in jarr)
         {
-            properties.Add(jobj["name"]?.ToString(),  new Dictionary<string, string>() { { "type", _GetTypeName(jobj["type"]?.ToString()) } });
+            properties.Add(jobj["name"]!.ToString(),  new Dictionary<string, string>() { { "type", _GetTypeName(jobj["type"]!.ToString()) } });
             if (jobj["required"]?.ToString() == "true")
             {
-                required.Add(jobj["name"]?.ToString());
+                required.Add(jobj["name"]!.ToString());
             }
         }
         result.Add("properties", properties);
         result.Add("required", required);
-        return JsonSerializer.Serialize(result);
+        return JsonConvert.SerializeObject(result);
     }
 
     public string _GetTypeName(string val) {
