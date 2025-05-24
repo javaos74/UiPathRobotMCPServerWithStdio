@@ -6,6 +6,7 @@ using PTST.UiPath.Orchestrator.API;
 using PTST.UiPath.Orchestrator.Models;
 using System.Diagnostics;
 using System.Text.Json;
+using Newtonsoft.Json;
 
 
 namespace UiPath.Robot.MCP.Tools;
@@ -13,13 +14,13 @@ namespace UiPath.Robot.MCP.Tools;
 [McpServerToolType]
 public class UiPathRobotTool
 {
- 
+
     [McpServerTool, Description("Get installed process list")]
     public static async Task<string> GetProcessList(
         RobotClient client)
     {
         var processes = await client.GetProcesses();
-        if( processes == null || processes.Count == 0)
+        if (processes == null || processes.Count == 0)
         {
             return "No processes found in robot.";
         }
@@ -37,25 +38,25 @@ public class UiPathRobotTool
 
     }
 
-    [McpServerTool, Description("Get specific process input argument for invocation")] 
+    [McpServerTool, Description("Get specific process input argument for invocation")]
     public static string GetProcessInputParameter(
         RobotClient client,
-        [Description("Process Key to get process input argument")] string processKey)   
+        [Description("Process Key to get process input argument")] string processKey)
     {
 #if DEBUG
         //Debugger.Launch();
 #endif
         var helper = RobotHelper.getRobotHelper();
         var release = helper.findProcessWithKey(processKey);
-        if( release == null)
+        if (release == null)
         {
             return "No processes found in specified folders.";
         }
-        else        
+        else
         {
             var inputArguments = release.Arguments.Input;
             return helper.ConvertToParameter(inputArguments);
-        }   
+        }
     }
 
 
@@ -68,18 +69,18 @@ public class UiPathRobotTool
 #if DEBUG
         //Debugger.Launch();
 #endif
-        var process = client.GetProcesses().Result.Where( p => p.Key.ToString() == processKey).FirstOrDefault();
-        if( process == null)
+        var process = client.GetProcesses().Result.Where(p => p.Key.ToString() == processKey).FirstOrDefault();
+        if (process == null)
         {
             return "No processes found in specified folders.";
         }
         else
         {
             var job = process.ToJob();
-            foreach(var k in inputArguments.Keys)
-            { 
+            foreach (var k in inputArguments.Keys)
+            {
                 var v = (System.Text.Json.JsonElement)inputArguments[k];
-                switch( v.ValueKind)
+                switch (v.ValueKind)
                 {
                     case System.Text.Json.JsonValueKind.String:
                         job.InputArguments[k] = v.GetString();
@@ -89,14 +90,14 @@ public class UiPathRobotTool
                         break;
                     case System.Text.Json.JsonValueKind.True:
                     case System.Text.Json.JsonValueKind.False:
-                        job.InputArguments[k] = v.GetBoolean() ;
+                        job.InputArguments[k] = v.GetBoolean();
                         break;
                 }
             }
             var result = await client.RunJob(job);
-            return JsonSerializer.Serialize(result.Arguments);
+            return JsonConvert.SerializeObject(result);
         }
     }
-   
+
 
 }
