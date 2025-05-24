@@ -1,15 +1,57 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ModelContextProtocol;
+using ModelContextProtocol.Protocol.Types;
 using System.Net.Http.Headers;
 using UiPath.Robot.Api;
 using UiPath.Robot.MCP.Tools;
 
 var builder = Host.CreateEmptyApplicationBuilder(settings: null);
 
+HashSet<string> subscriptions = [];
+
 builder.Services.AddMcpServer()
     .WithStdioServerTransport()
-    .WithTools<UiPathRobotTool>();
+    .WithTools<UiPathRobotTool>()
+    .WithListResourcesHandler(async (ctx, ct) =>
+    {
+        return new ListResourcesResult
+        {
+            Resources = 
+            [
+                new ModelContextProtocol.Protocol.Types.Resource
+                {
+                    Uri = "uipath://processes/list",
+                    Name = "Installed Processes",
+                    Description = "List of installed processes in robot.",
+                    MimeType = "text/plain",
+                },
+            ]
+        };
+    })
+    .WithReadResourceHandler(async (ctx, ct) =>
+    {
+        var uri = ctx.Params?.Uri;
+        if (uri == "uipath://processes/list")
+        {
+            return new ReadResourceResult
+            {
+                Contents = [ new TextResourceContents
+                {
+                    Text = "test",
+                    MimeType = "text/plain",
+                    Uri = uri,
+                }]
+            };
+        }
+        else
+        {
+            throw new NotSupportedException($"Unknown resource: {uri}");
+        }
+    });
+
+builder.Services.AddSingleton(subscriptions);
+builder.Services.AddHostedService<SubscriptionMessageSender>();
 
 builder.Services.AddSingleton(_ =>
 {
