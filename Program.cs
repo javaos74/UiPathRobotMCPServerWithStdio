@@ -50,9 +50,10 @@ builder.Services.AddMcpServer()
         }
     });
 
+/*
 builder.Services.AddSingleton(subscriptions);
 builder.Services.AddHostedService<SubscriptionMessageSender>();
-
+*/
 builder.Services.AddSingleton(_ =>
 {
     var client = new RobotClient();
@@ -60,7 +61,7 @@ builder.Services.AddSingleton(_ =>
 });
 var app = builder.Build();
 
-RobotHelper helper = RobotHelper.getRobotHelper();
+//RobotHelper helper = RobotHelper.getRobotHelper();
 //Console.WriteLine( helper.findProcessWithKey("1537e5fa-b770-4a67-92e9-38bcc5a23089"));
 
 await app.RunAsync();
